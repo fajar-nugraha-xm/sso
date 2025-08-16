@@ -1,0 +1,7 @@
+body {
+  font-family: system-ui, Segoe UI, Roboto, Arial;
+  margin: 2rem;
+}
+button {
+  margin: 0.25rem 0.5rem;
+}

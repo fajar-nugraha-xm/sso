@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CPDS SPA (Node OP @ /ids)</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/oidc-client-ts@2.4.0/dist/browser/oidc-client-ts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@25.0.6/dist/keycloak.min.js"></script>
+
+    <link rel="stylesheet" href="/assets/aceas.css"/>
+    <script type="module" src="/assets/common.js" async></script>
+    <script type="module" src="/assets/cpds.js" defer></script>
+    <style>
+      body {
+        font-family: system-ui, Segoe UI, Roboto, Arial;
+        margin: 2rem;
+      }
+      button {
+        margin: 0.25rem 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CPDS SPA</h1>
+    <p>
+      Auth: Authorization Code + PKCE against <code>/ids</code> (Node OIDC
+      Provider federating to Keycloak)
+    </p>
+    <div>
+      <button id="login">Login</button>
+      <button id="logout">Logout (realm)</button>
+      <button id="userinfo">UserInfo</button>
+      <button id="callapi">Call CPDS API</button>
+      <button id="switch">Switch to ACEAS</button>
+    </div>
+    <pre
+      id="out"
+      style="background: #111; color: #0f0; padding: 1rem; min-height: 10rem"
+    ></pre>
+  </body>
+</html>

@@ -1,0 +1,191 @@
+{
+  "realm": "agency-realm",
+  "enabled": true,
+  "displayName": "Agency Realm",
+  "loginTheme": "keycloak",
+  "rememberMe": true,
+  "loginWithEmailAllowed": true,
+  "registrationAllowed": false,
+  "clients": [
+    {
+      "clientId": "aceas-spa",
+      "secret": "aceas-oidc-secret",
+      "name": "ACEAS SPA",
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "rootUrl": "",
+      "adminUrl": "",
+      "baseUrl": "http://eservice.localhost/aceas/",
+      "redirectUris": [
+        "http://eservice.localhost/aceas/*"
+      ],
+      "webOrigins": [
+        "http://eservice.localhost"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "oauth2.device.authorization.grant.enabled": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "aud-aceas-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "aceas-api",
+            "id.token.claim": "false",
+            "lightweight.claim": "false",
+            "access.token.claim": "true",
+            "included.custom.audience": ""
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "cpds-spa",
+      "secret": "cpds-oidc-secret",
+      "name": "CPDS OIDC (broker for Node OP)",
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "baseUrl": "http://eservice.localhost/cpds/",
+      "redirectUris": [
+        "http://eservice.localhost/ids/*",
+        "http://eservice.localhost/cpds/*"
+      ],
+      "webOrigins": [
+        "+"
+      ],
+      "attributes": {
+        "oauth2.device.authorization.grant.enabled": "false",
+        "backchannel.logout.url": "http://eservice.localhost/cpds/backchannel-logout",
+        "backchannel.logout.session.required": "true",
+        "frontchannel.logout.session.required": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "aud-cpds-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "cpds-api",
+            "id.token.claim": "false",
+            "lightweight.claim": "false",
+            "access.token.claim": "true",
+            "included.custom.audience": ""
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "aceas-api",
+      "name": "ACEAS API (bearer-only)",
+      "publicClient": false,
+      "bearerOnly": true,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "cpds-api",
+      "name": "CPDS API (bearer-only)",
+      "publicClient": false,
+      "bearerOnly": true,
+      "protocol": "openid-connect"
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "aceas-user",
+        "description": "ACEAS user"
+      },
+      {
+        "name": "aceas-admin",
+        "description": "ACEAS admin"
+      },
+      {
+        "name": "cpds-user",
+        "description": "CPDS user"
+      },
+      {
+        "name": "cpds-admin",
+        "description": "CPDS admin"
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "demo",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "demo@example.com",
+      "firstName": "Demo",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "demo123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "cpds-user",
+        "aceas-user"
+      ]
+    }
+  ],
+  "identityProviders": [
+    {
+      "alias": "singpass",
+      "displayName": "Sign in with Singpass (mock)",
+      "providerId": "oidc",
+      "enabled": true,
+      "storeToken": true,
+      "trustEmail": true,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "useJwksUrl": "true",
+        "authorizationUrl": "http://eservice.localhost/broker/realms/singpass/protocol/openid-connect/auth",
+        "tokenUrl": "http://eservice.localhost/broker/realms/singpass/protocol/openid-connect/token",
+        "jwksUrl": "http://eservice.localhost/broker/realms/singpass/protocol/openid-connect/certs",
+        "issuer": "http://eservice.localhost/broker/realms/singpass",
+        "logoutUrl": "http://eservice.localhost/broker/realms/singpass/protocol/openid-connect/logout",
+        "userInfoUrl": "http://eservice.localhost/broker/realms/singpass/protocol/openid-connect/userinfo",
+        "clientId": "agency-broker",
+        "clientSecret": "agency-broker-secret",
+        "defaultScope": "openid profile email",
+        "validateSignature": "true",
+        "backchannelSupported": "true",
+        "syncMode": "IMPORT"
+      }
+    }
+  ],
+  "identityProviderMappers": [
+    {
+      "name": "assign-cpds-user",
+      "identityProviderAlias": "singpass",
+      "identityProviderMapper": "hardcoded-role-idp-mapper",
+      "config": {
+        "role": "cpds-user"
+      }
+    },
+    {
+      "name": "assign-aceas-user",
+      "identityProviderAlias": "singpass",
+      "identityProviderMapper": "hardcoded-role-idp-mapper",
+      "config": {
+        "role": "aceas-user"
+      }
+    }
+  ]
+}

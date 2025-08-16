@@ -1,0 +1,34 @@
+{
+  "realm": "singpass",
+  "enabled": true,
+  "displayName": "Singpass Mock",
+  "clients": [
+    {
+      "clientId": "agency-broker",
+      "name": "Agency Broker (Keycloak agency)",
+      "publicClient": false,
+      "secret": "agency-broker-secret",
+      "redirectUris": [
+        "http://eservice.localhost/auth/realms/agency-realm/broker/singpass/endpoint"
+      ],
+      "webOrigins": [
+        "+"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "idpuser",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "idpuser@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "idp123",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

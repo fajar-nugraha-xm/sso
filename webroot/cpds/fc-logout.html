@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CPDS front-channel logout</title>
+    <style>
+      body {
+        font-family: system-ui, Segoe UI, Roboto, Arial;
+        margin: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Front-channel logout landing</h2>
+    <p>
+      SPA state cleared. You can close this tab or <a href="/cpds/">go back</a>.
+    </p>
+    <script>
+      // Best-effort: since we use in-memory store, a reload is enough; try to clear any temp state keys we might use in future
+      try {
+        sessionStorage.clear();
+        localStorage.clear();
+      } catch {}
+    </script>
+  </body>
+</html>

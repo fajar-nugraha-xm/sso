@@ -1,0 +1,149 @@
+services:
+  db:
+    image: postgres:16
+    container_name: kc_db_agency
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - kc_pgdata_agency:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  db2:
+    image: postgres:16
+    container_name: kc_db_idp
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - kc_pgdata_idp:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.6
+    container_name: keycloak_agency
+    command:
+      - start-dev
+      - --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak 
+      KC_HOSTNAME_URL: ${DNS:-localhost}
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_RELATIVE_PATH: /auth
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+
+  keycloak_idp:
+    image: quay.io/keycloak/keycloak:25.0.6
+    container_name: keycloak_singpass
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db2:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_HOSTNAME_URL: ${DNS:-localhost}
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_RELATIVE_PATH: /broker
+    depends_on:
+      db2:
+        condition: service_healthy
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./keycloak/mock-idp-realm.json:/opt/keycloak/data/import/mock-idp-realm.json:ro
+
+  ids:
+    build: ./services/ids
+    container_name: ids_op
+    environment:
+      HOST: ${HOST:-http://localhost}
+      ISSUER_BASE: ${HOST:-http://localhost}/ids
+      KEYCLOAK_ISSUER: ${HOST:-http://localhost}/auth/realms/agency-realm
+      KEYCLOAK_AUTH: ${HOST:-http://localhost}/auth/realms/agency-realm/protocol/openid-connect/auth
+      KEYCLOAK_TOKEN: ${HOST:-http://localhost}/auth/realms/agency-realm/protocol/openid-connect/token
+      KEYCLOAK_USERINFO: ${HOST:-http://localhost}/auth/realms/agency-realm/protocol/openid-connect/userinfo
+      KEYCLOAK_CLIENT_ID: cpds-spa
+      KEYCLOAK_CLIENT_SECRET: cpds-oidc-secret
+      SESSION_KEYS: k1,k2
+      AUDIENCE: cpds-api
+      LOG_LEVEL: info
+    depends_on:
+      keycloak:
+        condition: service_started
+    volumes:
+      - ids_data:/data
+    expose:
+      - "7000"
+
+  aceas-api:
+    build: ./services/aceas-api
+    container_name: aceas_api
+    environment:
+      PORT: 3000
+      ISSUER: ${HOST:-http://localhost}/auth/realms/agency-realm
+      AUDIENCE: aceas-api
+      JWKS_URL: ${HOST:-http://localhost}/auth/realms/agency-realm/protocol/openid-connect/certs
+    depends_on:
+      keycloak:
+        condition: service_started
+    expose:
+      - "3000"
+
+  cpds-api:
+    build: ./services/cpds-api
+    container_name: cpds_api
+    environment:
+      PORT: 3001
+      ISSUER: ${HOST:-http://localhost}/ids
+      AUDIENCE: cpds-api
+      JWKS_URL: ${HOST:-http://localhost}/ids/.well-known/jwks.json
+    depends_on:
+      ids:
+        condition: service_started
+    expose:
+      - "3001"
+
+  web:
+    image: nginx:1.27-alpine
+    container_name: web
+    depends_on:
+      - aceas-api
+      - cpds-api
+      - ids
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./webroot:/usr/share/nginx/html:ro
+    networks:
+      default:
+        aliases:
+          - eservice.localhost
+
+volumes:
+  kc_pgdata_agency:
+  kc_pgdata_idp:
+  ids_data:
