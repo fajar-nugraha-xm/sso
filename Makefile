@@ -9,6 +9,9 @@ down:
 	-docker image rm app-sso-ids
 	-docker image rm app-sso-cpds-api
 	-docker image rm app-sso-aceas-api
+	-docker volume rm app-sso_ids_data
+	-docker volume rm app-sso_kc_pgdata_agency
+	-docker volume rm app-sso_kc_pgdata_idp
 
 re-ids:
 	 docker-compose up -d --no-deps --build --force-recreate ids
