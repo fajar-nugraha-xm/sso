@@ -52,12 +52,9 @@ router.get(config.redirectPath, async (req, res, next) => {
     const state = req.cookies.oidc_state;
     const nonce = req.cookies.oidc_nonce;
     const code_verifier = req.cookies.oidc_verifier;
-    const { state: req_state, session_state, code, iss } = req.query;
+    const { state: req_state, session_state, code } = req.query;
     if (state != req_state) {
       return res.status(400).json({ message: 'State mismatch' });
-    }
-    if (iss != config.kcDiscoveryUrl) {
-      return res.status(400).json({ message: 'Issuer mismatch' });
     }
     setCookie(res, 'oidc_session_state', session_state);
     setCookie(res, 'oidc_code', code);
