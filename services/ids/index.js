@@ -6,7 +6,7 @@ import { config } from './config.js';
 import { oidc, pkce } from './oidc.js';
 import { sessionStore } from './session.js';
 import { setCookie, clearAuthCookies, base64Encode } from './util.js';
-import { authGuard, jwks, generateToken } from './jwt.js';
+import { authGuard, jwks, generateToken, buildClaim } from './jwt.js';
 
 
 const oidcConfig = await oidc();
@@ -14,7 +14,7 @@ const oidcConfig = await oidc();
 const router = express.Router();
 
 // ====== API PROTECTED ======
-router.get(config.mePath, authGuard, (req, res) => res.json({ user: req.user }));
+router.get(config.mePath, authGuard, (req, res) => res.json({ ...req.user }));
 
 // ====== JWKS untuk verifikasi publik token App ======
 router.get(config.jwksPath, (req, res) => res.json(jwks));
@@ -38,6 +38,7 @@ router.get(config.loginPath, async (req, res) => {
   setCookie(res, 'oidc_state', state);
   setCookie(res, 'oidc_nonce', nonce);
   setCookie(res, 'oidc_verifier', code_verifier);
+  setCookie(res, 'oidc_challenge', code_challenge);
   if (req.query.redirect) {
     setCookie(res, 'oidc_redirect', base64Encode(req.query.redirect));
   }
@@ -48,12 +49,20 @@ router.get(config.loginPath, async (req, res) => {
 // 2) Callback dari KC
 router.get(config.redirectPath, async (req, res, next) => {
   try {
-    const currentUrl = new URL(config.host + config.prefix + req.url);
     const state = req.cookies.oidc_state;
     const nonce = req.cookies.oidc_nonce;
     const code_verifier = req.cookies.oidc_verifier;
+    const { state: req_state, session_state, code, iss } = req.query;
+    if (state != req_state) {
+      return res.status(400).json({ message: 'State mismatch' });
+    }
+    if (iss != config.kcDiscoveryUrl) {
+      return res.status(400).json({ message: 'Issuer mismatch' });
+    }
+    setCookie(res, 'oidc_session_state', session_state);
+    setCookie(res, 'oidc_code', code);
 
-    console.log('URL: ', currentUrl);
+    const currentUrl = new URL(config.host + config.prefix + req.url);
     const tokenSet = await client.authorizationCodeGrant(
       oidcConfig,
       currentUrl,
@@ -71,26 +80,19 @@ router.get(config.redirectPath, async (req, res, next) => {
     if (tokenSet.id_token)
       setCookie(res, 'kc_id', tokenSet.id_token);
 
-    const claims = tokenSet.claims(); // sub, email, name, preferred_username, realm_access, sid, iss, etc.
-    const user = {
-      sub: claims.sub,
-      email: claims.email,
-      name: claims.name || claims.preferred_username,
-      roles: claims.realm_access?.roles || [],
-      kc_iss: claims.iss,
-      kc_sid: claims.sid
-    };
-
-    // Mint token App
+    const claims = tokenSet.claims();
+    const user = buildClaim(claims);
     const { token } = await generateToken(user);
     setCookie(res, 'app_token', token, Number(config.tokenTtlMin));
-    if (claims.sid)
+    if (claims.sid) {
       setCookie(res, 'kc_sid', claims.sid);
+    }
 
-    res.redirect(config.host + `/cpds/#authenticated`);
     if (req.cookies.oidc_redirect) {
       const redirect = base64Encode(req.cookies.oidc_redirect);
       res.redirect(config.host + `/cpds/#authenticated?redirect=${redirect}`);
+    } else {
+      res.redirect(config.host + `/cpds/#authenticated`);
     }
   } catch (err) {
     console.error('error: ', err);
@@ -110,14 +112,7 @@ router.post(config.refreshPath, async (req, res) => {
     }
 
     const claims = refreshed.claims();
-    const user = {
-      sub: claims.sub,
-      email: claims.email,
-      name: claims.name || claims.preferred_username,
-      roles: claims.realm_access?.roles || [],
-      kc_iss: claims.iss,
-      kc_sid: claims.sid
-    };
+    const user = buildClaim(claims);
 
     const { token } = await generateToken(user);
     setCookie(res, 'app_token', token, Number(config.tokenTtlMin));
@@ -183,6 +178,10 @@ const app = express();
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use((req, res, next) => {
+  console.log(`===> ${req.method} ${req.path}: ${JSON.stringify(req.query)} - ${JSON.stringify(req.body || {})}\n`);
+  next();
+});
 app.use(config.prefix, router);
 app.use((req, res, next) => {
   res.status(404).send(`Resource ${req.method} ${req.url} is not exists`);

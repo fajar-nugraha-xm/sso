@@ -102,3 +102,26 @@ export async function authGuard(req, res, next) {
         res.status(401).json({ error: 'Unauthorized' });
     }
 }
+
+/**
+ * 
+ * @param {import('openid-client').IDToken} claim 
+ */
+export function buildClaim(claims) {
+    const user = {};
+    for (const key of Object.keys(claims)) {
+        if (claims[key]) {
+            user[key] = claims[key];
+        }
+    }
+
+    return {
+        ...user,
+        sub: claims.sub,
+        email: claims.email,
+        name: claims.name || claims.preferred_username,
+        roles: claims.realm_access?.roles || [],
+        kc_iss: claims.iss,
+        kc_sid: claims.sid
+    };
+}
