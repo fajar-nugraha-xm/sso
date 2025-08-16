@@ -15,6 +15,89 @@ All components run as containers defined in `docker-compose.yml`:
 - **app-2-api** – sample API secured by tokens from the `ids` provider.
 - **web** – Nginx serving the SPAs and routing API requests to the proper services.
 
+### How It Works
+
+```
+  Client Browser
+        |
+        v
+  +-------------+
+  |     web     |  (Nginx reverse proxy)
+  +------+------+
+         |                      
+         +--------------------------------------+
+         |                                      |
+         v                                      v
+    +----------+                           +----------+
+    | App-1 SPA|                           | App-2 SPA|
+    +-----+----+                           +----+-----+
+          |                                      |
+          v                                      v
+    +----------+                           +----------+
+    |app-1-api |                           |app-2-api |
+    +-----+----+                           +----+-----+
+          |                                      |
+          v                                      v
+    +----------+         federated login    +---------+
+    | Keycloak | <--------------------------|   IDS   |
+    | (agency) |                            +----+----+
+    +-----+----+                                 |
+          |                                      v
+          |                                +-----------+
+          |                                | Keycloak  |
+          |                                | (mock IdP)|
+          |                                +-----------+
+          +------------------------------------+
+               direct tokens for App-1
+```
+
+#### Cross-App SSO Flow
+
+When a user already authenticated in **App-1** opens **App-2**, the existing Keycloak
+session is reused so no extra login is required:
+
+```
+Client Browser
+    |
+    v
++-----------+
+| App-2 SPA |
++-----+-----+
+      |
+      | (1) redirect to IDS if no App-2 token
+      v
++-----------+
+|    IDS    |
++-----+-----+
+      |
+      | (2) redirect to Keycloak if no IDS session
+      v
++-----------+
+| Keycloak  |
++-----+-----+
+      |
+      | (3) existing session -> issue auth code
+      v
++-----------+
+|    IDS    |
++-----+-----+
+      |
+      | (4) mint App-2 token & set cookie
+      v
++-----------+
+| App-2 SPA |
++-----+-----+
+      |
+      | (5) call App-2 API with token
+      v
++-----------+
+| App-2 API |
++-----------+
+```
+
+This flow shows how the IDS provider leverages the Keycloak session established with
+App-1, enabling seamless navigation between apps without a second login.
+
 See the compose file for exact settings and ports.
 
 ## Prerequisites
