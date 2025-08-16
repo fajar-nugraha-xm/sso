@@ -35,8 +35,8 @@ See the compose file for exact settings and ports.
 
 2. **Access the apps**
 
-   - App-1 SPA: [http://eservice.localhost/aceas/](http://eservice.localhost/aceas/)
-   - App-2 SPA: [http://eservice.localhost/cpds/](http://eservice.localhost/cpds/)
+   - App-1 SPA: [Link](http://eservice.localhost/aceas/)
+   - App-2 SPA: [Link](http://eservice.localhost/cpds/)
 
 3. **Default credentials**
 
