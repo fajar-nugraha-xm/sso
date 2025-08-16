@@ -8,20 +8,16 @@
     <script src="https://cdn.jsdelivr.net/npm/oidc-client-ts@2.4.0/dist/browser/oidc-client-ts.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/keycloak-js@25.0.6/dist/keycloak.min.js"></script>
 
-    <link rel="stylesheet" href="/assets/aceas.css"/>
+    <link rel="stylesheet" href="/assets/common.css"/>
     <script type="module" src="/assets/common.js" async></script>
     <script type="module" src="/assets/cpds.js" defer></script>
-    <style>
-      body {
-        font-family: system-ui, Segoe UI, Roboto, Arial;
-        margin: 2rem;
-      }
-      button {
-        margin: 0.25rem 0.5rem;
-      }
-    </style>
   </head>
   <body>
+    <div id="loading-overlay">
+      <div class="loader"><div class="bar"></div></div>
+      <div>Checking authentication&hellip;</div>
+    </div>
+
     <h1>CPDS SPA</h1>
     <p>
       Auth: Authorization Code + PKCE against <code>/ids</code> (Node OIDC

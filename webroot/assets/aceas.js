@@ -1,5 +1,5 @@
 
-import { callApi, log } from "/assets/common.js";
+import { callApi, log, showLoading, hideLoading } from "/assets/common.js";
 
 const kc = new Keycloak({
     url: "http://eservice.localhost/auth",
@@ -12,23 +12,47 @@ let token = null;
 
 init();
 async function init() {
+    // ensure loading overlay is visible while we decide
+    showLoading();
+    let isNeedToHide = false;
     try {
+        const allqueries = (new URLSearchParams(window.location.search));
+        let redirectUri = window.location.origin + "/aceas/";
+        // append all query parameters to the redirect URI
+        for (const [key, value] of allqueries) {
+            redirectUri += `&${key}=${value}`;
+        }
+        redirectUri += window.location.hash ?? '';
         const auth = await kc.init({
             onLoad: "check-sso",
             checkLoginIframe: false,
             pkceMethod: "S256",
-            redirectUri: window.location.origin + "/aceas/",
+            redirectUri: redirectUri,
             scope: "openid profile email",
         });
+
         if (auth) {
             token = kc.token;
             log("out", "Authenticated.");
+
+            isNeedToHide = true; // prevent hiding loading overlay
         } else {
-            log("out", "Not authenticated.");
+            log("out", "Not authenticated: " + redirectUri);
+            if (window.location.hash.includes("switcher")) {
+                console.log("Switching");
+                kc.login();
+            } else {
+                isNeedToHide = true; // prevent hiding loading overlay
+            }
         }
     } catch (e) {
         console.error(e);
         log("out", "Init error: " + e);
+    } finally {
+        // hide loading overlay after auth check
+        if (isNeedToHide) {
+            hideLoading();
+        }
     }
 }
 
@@ -42,7 +66,10 @@ kc.onTokenExpired = async () => {
     }
 };
 
-document.getElementById("login").onclick = () => kc.login();
+document.getElementById("login").onclick = () => {
+    console.log("Logging in...");
+    kc.login();
+};
 document.getElementById("logout").onclick = () =>
     kc.logout({ redirectUri: window.location.origin + "/aceas/" });
 document.getElementById("userinfo").onclick = async () => {
@@ -60,5 +87,5 @@ document.getElementById("callapi").onclick = async () => {
 };
 document.getElementById("switch").onclick = () => {
     const go = encodeURIComponent("/cpds/");
-    window.location.href = `/ids/auth/login?redirect=${go}`;
+    window.location.href = `/cpds/#switcher`;
 };

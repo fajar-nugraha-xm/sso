@@ -1,4 +1,4 @@
-import { callApi, log, base64Decode } from "/assets/common.js";
+import { callApi, log, showLoading, hideLoading } from "/assets/common.js";
 
 async function authCheck() {
     const r = await fetch("/ids/auth/refresh", {
@@ -21,20 +21,25 @@ async function authCheck() {
     }
 }
 window.onload = async () => {
-    console.log('CPDS SPA loaded');
-    const isAuth = await authCheck();
-    if (!isAuth) {
-        log("out", `State: not authenticated, please login`);
-        return;
-    }
+    // ensure loading overlay is visible while we decide
+    showLoading();
+    let isNeedToHide = false;
+    try {
+        const isAuth = await authCheck();
+        if (!isAuth) {
+            log("out", `State: not authenticated, please login`);
+            if (window.location.hash.includes("switcher")) {
+                console.log("Switching");
+                // keep overlay visible while redirecting
+                location.href = '/ids/auth/login';
+            } else {
+                isNeedToHide = true; // prevent hiding loading overlay
+            }
 
-    log("out", `State: authenticated, access_token: ${window.localStorage.getItem("access_token")}`);
-    const urlRedirect = (new URLSearchParams(window.location.search)).get('redirect');
-    if (urlRedirect) {
-        const redirect = decodeURIComponent(urlRedirect);
-        const normal = base64Decode(redirect);
-        log("out", `Redirecting to: ${redirect} ${normal}`);
-    } else {
+            return;
+        }
+
+        log("out", `State: authenticated, access_token: ${window.localStorage.getItem("access_token")}`);
         var interval = setInterval(async () => {
             const isAuth = await authCheck();
             if (!isAuth) {
@@ -42,14 +47,27 @@ window.onload = async () => {
                 clearInterval(interval);
                 return;
             }
-        }, 60000); // Check every minute
+        }, 60000); // Check every minute 
+        
+        isNeedToHide = true; // prevent hiding loading overlay
+    } catch (e) {
+        console.error(e);
+        log("out", "Init error: " + e);
+    } finally {
+        // hide loading overlay after auth check
+        if (isNeedToHide) {
+            hideLoading();
+        }
     }
 }
 
 document.getElementById("login").onclick = () => {
+    // show loading while redirecting to login
+    showLoading();
     location.href = '/ids/auth/login';
 };
 document.getElementById("logout").onclick = () => {
+    showLoading();
     location.href = '/ids/auth/logout';
 };
 document.getElementById("userinfo").onclick = async () => {
@@ -70,6 +88,6 @@ document.getElementById("callapi").onclick = async () => {
     log("out", `CPDS API [${r.status}]:\n${r.body}`);
 };
 document.getElementById("switch").onclick = () => {
-    const go = encodeURIComponent("/aceas/  ");
-    window.location.href = `/aceas/?redirect=${go}`;
+    const go = encodeURIComponent("/aceas/");
+    window.location.href = `/aceas/#switcher`;
 };

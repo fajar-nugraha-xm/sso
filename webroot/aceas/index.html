@@ -8,9 +8,15 @@
     <script src="https://cdn.jsdelivr.net/npm/keycloak-js@25.0.6/dist/keycloak.min.js"></script>
 
     <link rel="stylesheet" href="/assets/aceas.css" />
+    <link rel="stylesheet" href="/assets/common.css" />
     <script type="module" src="/assets/common.js"></script>
   </head>
   <body>
+    <div id="loading-overlay">
+      <div class="loader"><div class="bar"></div></div>
+      <div>Checking authentication&hellip;</div>
+    </div>
+    
     <h1>ACEAS SPA</h1>
     <p>Auth: Keycloak (agency-realm) via keycloak-js (PKCE S256, check-sso)</p>
     <div>

@@ -1,3 +1,14 @@
+export function hideLoading() {
+    const el = document.getElementById('loading-overlay');
+    if (el) el.classList.add('hidden');
+}
+
+export function showLoading() {
+    const el = document.getElementById('loading-overlay');
+    if (el) el.classList.remove('hidden');
+}
+
+
 export async function callApi(path, token, method = "GET") {
   const res = await fetch(path, {
     method: method,

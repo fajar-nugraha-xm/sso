@@ -6,6 +6,10 @@
   "rememberMe": true,
   "loginWithEmailAllowed": true,
   "registrationAllowed": false,
+  "defaultRoles": [
+    "cpds-user",
+    "aceas-user"
+  ],
   "clients": [
     {
       "clientId": "aceas-spa",
@@ -150,8 +154,9 @@
       "displayName": "Sign in with Singpass (mock)",
       "providerId": "oidc",
       "enabled": true,
-      "storeToken": true,
+      "storeToken": false,
       "trustEmail": true,
+      "addReadTokenRoleOnCreate": false,
       "firstBrokerLoginFlowAlias": "first broker login",
       "config": {
         "useJwksUrl": "true",
@@ -166,7 +171,9 @@
         "defaultScope": "openid profile email",
         "validateSignature": "true",
         "backchannelSupported": "true",
-        "syncMode": "IMPORT"
+        "syncMode": "FORCE",
+        "guessedEmailAttribute": "email",
+        "guessedUsernameAttribute": "preferred_username"
       }
     }
   ],
@@ -176,6 +183,8 @@
       "identityProviderAlias": "singpass",
       "identityProviderMapper": "hardcoded-role-idp-mapper",
       "config": {
+        "claim": "preferred_username",
+        "claim.value": "*",
         "role": "cpds-user"
       }
     },
@@ -184,7 +193,45 @@
       "identityProviderAlias": "singpass",
       "identityProviderMapper": "hardcoded-role-idp-mapper",
       "config": {
+        "claim": "preferred_username",
+        "claim.value": "*",
         "role": "aceas-user"
+      }
+    },
+    {
+      "name": "username-mapper",
+      "identityProviderAlias": "singpass",
+      "identityProviderMapper": "oidc-username-idp-mapper",
+      "config": {
+        "claim": "preferred_username",
+        "user.attribute": "username"
+      }
+    },
+    {
+      "name": "email-mapper",
+      "identityProviderAlias": "singpass",
+      "identityProviderMapper": "oidc-user-attribute-idp-mapper",
+      "config": {
+        "claim": "email",
+        "user.attribute": "email"
+      }
+    },
+    {
+      "name": "first-name-mapper",
+      "identityProviderAlias": "singpass",
+      "identityProviderMapper": "oidc-user-attribute-idp-mapper",
+      "config": {
+        "claim": "given_name",
+        "user.attribute": "firstName"
+      }
+    },
+    {
+      "name": "last-name-mapper",
+      "identityProviderAlias": "singpass",
+      "identityProviderMapper": "oidc-user-attribute-idp-mapper",
+      "config": {
+        "claim": "family_name",
+        "user.attribute": "lastName"
       }
     }
   ]

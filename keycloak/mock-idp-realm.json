@@ -8,12 +8,14 @@
       "name": "Agency Broker (Keycloak agency)",
       "publicClient": false,
       "secret": "agency-broker-secret",
+      "protocol": "openid-connect",
       "redirectUris": [
         "http://eservice.localhost/auth/realms/agency-realm/broker/singpass/endpoint"
       ],
       "webOrigins": [
         "+"
-      ]
+      ],
+      "directAccessGrantsEnabled": false
     }
   ],
   "users": [
@@ -22,13 +24,16 @@
       "enabled": true,
       "emailVerified": true,
       "email": "idpuser@example.com",
+      "firstName": "IdP",
+      "lastName": "User",
       "credentials": [
         {
           "type": "password",
           "value": "idp123",
           "temporary": false
         }
-      ]
+      ],
+      "realmRoles": []
     }
   ]
 }
