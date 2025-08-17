@@ -1,9 +1,64 @@
-body {
-  font-family: system-ui, Segoe UI, Roboto, Arial;
-  margin: 2rem;
+@import "tailwindcss";
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+html {
+  /* 1rem = 10px will work when user change browser font */
+  font-size: 62.5%;
+}
+
+body {
+  font-size: 1.6rem;
+  margin: 5rem 10rem;
+  padding: 2.5rem;
+
+  /* display: flex; */
+  /* place-items: center; */
+  min-width: 32rem;
+  min-height: 100vh;
+}
+
 button {
+  font-size: 2rem;
+  padding: 0.5em 1em;
   margin: 0.25rem 0.5rem;
+  line-height: 1.1;
+}
+
+a {
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+h2 {
+  font-size: 2.4em;
+  line-height: 1.1;
+}
+
+h3 {
+  font-size: 1.6em;
+  line-height: 1.1;
 }
 
 /* Loading overlay */
@@ -23,10 +78,10 @@ button {
   display: none;
 }
 .loader {
-  width: 240px;
-  height: 6px;
+  width: 24rem;
+  height: 0.6rem;
   background: rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
+  border-radius: 0.3rem;
   overflow: hidden;
 }
 .loader > .bar {

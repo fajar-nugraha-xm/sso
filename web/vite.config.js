@@ -2,8 +2,10 @@ import { defineConfig } from 'vite';
 import { relative, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { globSync } from 'glob';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+    plugins: [tailwindcss()],
     build: {
         outDir: '../webroot',
         emptyOutDir: true,
