@@ -1,3 +1,39 @@
+export function safeParse(s) {
+    try { return s == null ? null : JSON.parse(s); }
+    catch { return null; }
+}
+
+export function read(key, fallback) {
+    try {
+        const raw = localStorage.getItem(key);
+        return raw == null ? fallback : JSON.parse(raw);
+    } catch { return fallback; }
+}
+
+export function throttle(fn, ms) {
+    let id = 0, pending = false;
+    return function () {
+        if (pending) return;
+        pending = true;
+        clearTimeout(id);
+        id = setTimeout(() => { pending = false; fn(); }, ms);
+    };
+}
+
+export function load(key, fallback) {
+    try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : structuredClone(fallback);
+    } catch {
+        return structuredClone(fallback);
+    }
+}
+
+export function saveIdle(key, value) {
+    const doSave = () => localStorage.setItem(key, JSON.stringify(value));
+    (window.requestIdleCallback || setTimeout)(doSave, 0);
+}
+
 export function hideLoading() {
     const el = document.getElementById('loading-overlay');
     if (el) el.classList.add('hidden');
@@ -8,19 +44,18 @@ export function showLoading() {
     if (el) el.classList.remove('hidden');
 }
 
-
 export async function callApi(path, token, method = "GET") {
-  const res = await fetch(path, {
-    method: method,
-    headers: token ? { Authorization: `Bearer ${token}` } : {}
-  });
-  const text = await res.text();
-  return { ok: res.ok, status: res.status, body: text };
+    const res = await fetch(path, {
+        method: method,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+    const text = await res.text();
+    return { ok: res.ok, status: res.status, body: text };
 }
 
 export function log(el, msg) {
-  const pre = document.getElementById(el);
-  pre.textContent = (pre.textContent + "\n" + msg).trim();
+    const pre = document.getElementById(el);
+    pre.textContent = (pre.textContent + "\n" + msg).trim();
 }
 
 export function b64decode(str) {

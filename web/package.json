@@ -1,0 +1,20 @@
+{
+  "name": "vanilla",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "glob": "^11.0.3",
+    "scss": "^0.2.4",
+    "vite": "^7.1.2"
+  },
+  "dependencies": {
+    "keycloak-js": "25.0.6",
+    "oidc-client-ts": "^2.4.1"
+  }
+}

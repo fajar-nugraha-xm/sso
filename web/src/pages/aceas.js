@@ -1,5 +1,6 @@
-
-import { callApi, log, showLoading, hideLoading } from "/assets/common.js";
+import '../styles/common.css';
+import { callApi, log, showLoading, hideLoading } from "../shared";
+import Keycloak from 'keycloak-js';
 
 const kc = new Keycloak({
     url: "http://eservice.localhost/auth",

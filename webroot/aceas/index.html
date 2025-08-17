@@ -1,22 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ACEAS SPA (Keycloak)</title>
-
-    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@25.0.6/dist/keycloak.min.js"></script>
-
-    <link rel="stylesheet" href="/assets/aceas.css" />
-    <link rel="stylesheet" href="/assets/common.css" />
-    <script type="module" src="/assets/common.js"></script>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/assets/vite-DcBtz0py.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ACEAS App</title>
+    <script type="module" crossorigin src="/assets/aceas\index-sk-sHEPs.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
+    <link rel="modulepreload" crossorigin href="/assets/util-DiwRAcT_.js">
+    <link rel="stylesheet" crossorigin href="/assets/common-C_Vi7rri.css">
   </head>
   <body>
     <div id="loading-overlay">
       <div class="loader"><div class="bar"></div></div>
       <div>Checking authentication&hellip;</div>
     </div>
-    
+
     <h1>ACEAS SPA</h1>
     <p>Auth: Keycloak (agency-realm) via keycloak-js (PKCE S256, check-sso)</p>
     <div>
@@ -30,7 +29,6 @@
       id="out"
       style="background: #111; color: #0f0; padding: 1rem; min-height: 10rem"
     ></pre>
-
-    <script type="module" src="/assets/aceas.js"></script>
+
   </body>
 </html>

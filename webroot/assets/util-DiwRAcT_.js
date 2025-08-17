@@ -1,0 +1,2 @@
+function s(){const t=document.getElementById("loading-overlay");t&&t.classList.add("hidden")}function i(){const t=document.getElementById("loading-overlay");t&&t.classList.remove("hidden")}async function d(t,e,n="GET"){const o=await fetch(t,{method:n,headers:e?{Authorization:`Bearer ${e}`}:{}}),a=await o.text();return{ok:o.ok,status:o.status,body:a}}function c(t,e){const n=document.getElementById(t);n.textContent=(n.textContent+`
+`+e).trim()}export{d as c,s as h,c as l,i as s};

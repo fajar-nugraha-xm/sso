@@ -1,4 +1,5 @@
-import { callApi, log, showLoading, hideLoading } from "/assets/common.js";
+import '../styles/common.css';
+import { callApi, log, showLoading, hideLoading } from "../shared";
 
 async function authCheck() {
     const r = await fetch("/ids/auth/refresh", {
