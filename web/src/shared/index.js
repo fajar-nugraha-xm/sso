@@ -1,5 +1,6 @@
 export * from './proxy-storage.js';
 export * from './reactive-storage-ttl.js';
+export * from './reactive-storage-ttl-sched.js';
 export * from './reactive-storage.js';
 export * from './sched.js';
 export * from './signal-storage.js';

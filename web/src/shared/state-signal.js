@@ -15,7 +15,12 @@
  * effect(() => { document.body.dataset.even = isEven(); });
  * 
  * @param {any} initial The initial value of the state signal.
- * @returns {object} An object with `get`, `set`, and `subscribe` methods to manage the state.
+ * @returns {{
+ *  get: () => any;
+ *  set: (any) => void;
+ *  partialSet: (object) => void;
+ *  subscribe: (fn: any) => () => boolean;
+ * }} An object with `get`, `set`, and `subscribe` methods to manage the state.
  * * - `get()`: Returns the current value of the state.
  * * - `set(value)`: Sets the state to a new value. If a function is provided, it will be called with the current value and should return the new value.
  * * - `subscribe(callback)`: Subscribes to state changes. The callback will be called with the new value whenever the state changes. It returns a function to unsubscribe from the changes.
@@ -27,10 +32,14 @@ export function createStateSignal(initial) {
         value = typeof next === 'function' ? next(value) : next;
         queueMicrotask(() => subs.forEach(fn => fn(value))); // batch via microtask
     };
+    const partialSet = (next) => {
+        value = { ...value, ...next };
+        queueMicrotask(() => subs.forEach(fn => fn(value))); // batch via microtask
+    };
     const get = () => value;
     const subscribe = (fn) => (subs.add(fn), () => subs.delete(fn));
 
-    return { get, set, subscribe };
+    return { get, set, partialSet, subscribe };
 }
 
 /**

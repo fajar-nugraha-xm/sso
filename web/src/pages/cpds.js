@@ -1,4 +1,4 @@
-import '../styles/common.scss';
+import './common.js';
 import { callApi, log, showLoading, hideLoading } from "../shared";
 
 async function authCheck() {

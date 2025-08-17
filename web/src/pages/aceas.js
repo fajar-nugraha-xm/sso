@@ -1,92 +1,140 @@
-import '../styles/common.scss';
+import './common.js';
 import { callApi, log, showLoading, hideLoading } from "../shared";
 import Keycloak from 'keycloak-js';
+import { signal, effect } from '@preact/signals';
 
-const kc = new Keycloak({
-    url: "http://eservice.localhost/auth",
-    realm: "agency-realm",
-    clientId: "aceas-spa",
+const loginBtn = document.getElementById("login");
+const logoutBtn = document.getElementById("logout");
+const userInfoBtn = document.getElementById("userinfo");
+const callApiBtn = document.getElementById("callapi");
+const switchBtn = document.getElementById("switch");
+
+const state = (function() {
+    let st = {
+        kc: new Keycloak({
+            url: "http://eservice.localhost/auth",
+            realm: "agency-realm",
+            clientId: "aceas-spa",
+        }),
+        isAuthenticated: signal(false),
+        isLoading: signal(0),
+        userInfo: signal(null),
+    };
+
+    return {
+        ...st,
+        kcInit: async () => {
+            try {
+                return await st.kc.init({
+                    onLoad: 'check-sso',
+                    checkLoginIframe: false,
+                    pkceMethod: 'S256',
+                    flow: 'standard',
+                    redirectUri: window.location.href,
+                });
+            } catch (e) {
+                st.kc = new Keycloak({
+                    url: "http://eservice.localhost/auth",
+                    realm: "agency-realm",
+                    clientId: "aceas-spa",
+                });
+                return await st.kc.init({
+                    onLoad: 'login-required',
+                    checkLoginIframe: false,
+                    pkceMethod: 'S256',
+                    flow: 'standard',
+                    redirectUri: window.location.href,
+                });
+            } finally {
+                st.kc.onTokenExpired = async () => {
+                    try {
+                        await st.kc.updateToken(30);
+                        log("out", "Token refreshed");
+                    } catch (e) {
+                        log("out", "Token refresh failed: " + e);
+                    }
+                };
+            }
+        },
+    };
+})();
+
+effect(() => {
+    console.log('is authencticated changes: ', state.isAuthenticated.value);
+    if (state.isAuthenticated.value === true) {
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-block";
+        userInfoBtn.style.display = "inline-block";
+        callApiBtn.style.display = "inline-block";
+
+        !logoutBtn.onclick && (logoutBtn.onclick = () => {
+            state.kc.logout({ redirectUri: window.location.origin + "/aceas/" });
+        });
+        !userInfoBtn.onclick && (userInfoBtn.onclick = async () => {
+            if (!state.kc.authenticated)
+                return log("out", "Not logged in");
+            const res = await fetch(
+                "http://eservice.localhost/auth/realms/agency-realm/protocol/openid-connect/userinfo",
+                { headers: { Authorization: "Bearer " + state.kc.token } }
+            );
+            const userInfo = await res.json();
+
+            state.userInfo.value = userInfo;
+            log("out", "userinfo: " + JSON.stringify(userInfo, null, 2));
+        });
+        !callApiBtn.onclick && (callApiBtn.onclick = async () => {
+            if (!state.kc.authenticated)
+                return log("out", "Login first");
+            const r = await callApi("/aceas/api/hello", state.kc.token);
+            log("out", `ACEAS API [${r.status}]:\n${r.body}`);
+        });
+    } else {
+        loginBtn.style.display = "inline-block";
+        logoutBtn.style.display = "none";
+        userInfoBtn.style.display = "none";
+        callApiBtn.style.display = "none";
+    }
+});
+effect(() => {
+    if (state.isLoading.value == true) {
+        showLoading();
+    } else {
+        hideLoading();
+    }
 });
 
-let token = null;
-
-
-init();
-async function init() {
-    // ensure loading overlay is visible while we decide
-    showLoading();
-    let isNeedToHide = false;
+main();
+async function main() {
+    console.log('init main');
     try {
-        const allqueries = (new URLSearchParams(window.location.search));
-        let redirectUri = window.location.origin + "/aceas/";
-        // append all query parameters to the redirect URI
-        for (const [key, value] of allqueries) {
-            redirectUri += `&${key}=${value}`;
-        }
-        redirectUri += window.location.hash ?? '';
-        const auth = await kc.init({
-            onLoad: "check-sso",
-            checkLoginIframe: false,
-            pkceMethod: "S256",
-            redirectUri: redirectUri,
-            scope: "openid profile email",
-        });
+        state.isLoading.value = true;
 
-        if (auth) {
-            token = kc.token;
+        loginBtn.onclick = () => {
+            console.log("Logging in...");
+            state.kc.login();
+        };
+        switchBtn.onclick = () => {
+            const go = encodeURIComponent("/cpds/");
+            window.location.href = `/cpds/#switcher`;
+        };
+
+        
+        const auth = await state.kcInit();
+        state.isAuthenticated.value = state.kc.authenticated ?? auth;
+        if (state.isAuthenticated.value) {
             log("out", "Authenticated.");
-
-            isNeedToHide = true; // prevent hiding loading overlay
         } else {
-            log("out", "Not authenticated: " + redirectUri);
+            log("out", "Not authenticated.");
             if (window.location.hash.includes("switcher")) {
                 console.log("Switching");
-                kc.login();
-            } else {
-                isNeedToHide = true; // prevent hiding loading overlay
+                state.kc.login();
             }
         }
     } catch (e) {
-        console.error(e);
+        state.isAuthenticated.value = false;
+        console.log(e);
         log("out", "Init error: " + e);
     } finally {
-        // hide loading overlay after auth check
-        if (isNeedToHide) {
-            hideLoading();
-        }
+        state.isLoading.value = false;
     }
 }
-
-kc.onTokenExpired = async () => {
-    try {
-        await kc.updateToken(30);
-        token = kc.token;
-        log("out", "Token refreshed");
-    } catch (e) {
-        log("out", "Token refresh failed: " + e);
-    }
-};
-
-document.getElementById("login").onclick = () => {
-    console.log("Logging in...");
-    kc.login();
-};
-document.getElementById("logout").onclick = () =>
-    kc.logout({ redirectUri: window.location.origin + "/aceas/" });
-document.getElementById("userinfo").onclick = async () => {
-    if (!kc.authenticated) return log("out", "Not logged in");
-    const res = await fetch(
-        "http://eservice.localhost/auth/realms/agency-realm/protocol/openid-connect/userinfo",
-        { headers: { Authorization: "Bearer " + kc.token } }
-    );
-    log("out", "userinfo: " + JSON.stringify(await res.json(), null, 2));
-};
-document.getElementById("callapi").onclick = async () => {
-    if (!kc.authenticated) return log("out", "Login first");
-    const r = await callApi("/aceas/api/hello", kc.token);
-    log("out", `ACEAS API [${r.status}]:\n${r.body}`);
-};
-document.getElementById("switch").onclick = () => {
-    const go = encodeURIComponent("/cpds/");
-    window.location.href = `/cpds/#switcher`;
-};
