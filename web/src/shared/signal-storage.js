@@ -1,5 +1,4 @@
-// signal-storage.js
-function createSignalFromLocalStorage(key, initialValue) {
+export function createSignalFromLocalStorage(key, initialValue) {
     let value = read(key, initialValue);
     const subs = new Set();
 

@@ -1,7 +1,6 @@
 import { load, throttle } from "./util.js";
 
-// proxy-storage.js
-function createReactiveObject(key, initial = {}) {
+export function createReactiveObject(key, initial = {}) {
     const target = load(key, initial);
     const bus = new EventTarget();
 

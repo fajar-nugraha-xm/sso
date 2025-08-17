@@ -1,7 +1,6 @@
 import { safeParse } from "./util";
 
-// reactive-storage.js
-class ReactiveStorage extends EventTarget {
+export class ReactiveStorage extends EventTarget {
     constructor(channel = 'lsync') {
         super();
         this.bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(channel) : null;
