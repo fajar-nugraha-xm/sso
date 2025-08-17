@@ -5,10 +5,11 @@
     <link rel="icon" type="image/svg+xml" href="/assets/vite-DcBtz0py.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CPDS App</title>
-    <script type="module" crossorigin src="/assets/cpds\index-xMSwGppX.js"></script>
+
+    <script type="module" crossorigin src="/assets/cpds\index-CUcsJ-qf.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
     <link rel="modulepreload" crossorigin href="/assets/sched-DruKi8Dd.js">
-    <link rel="stylesheet" crossorigin href="/assets/common-awVPpcxU.css">
+    <link rel="stylesheet" crossorigin href="/assets/common-DpcXzHZf.css">
   </head>
   <body>
   <body>
@@ -17,11 +18,12 @@
       <div>Checking authentication&hellip;</div>
     </div>
 
-    <h1>CPDS SPA</h1>
+    <h1 class="text-3xl font-bold">CPDS SPA!</h1>
     <h3>
       Auth: Authorization Code + PKCE against <code>/ids</code> (Node OIDC
       Provider federating to Keycloak)
     </h3>
+    
     <div>
       <button id="login">Login</button>
       <button id="logout">Logout (realm)</button>
@@ -29,9 +31,8 @@
       <button id="callapi">Call CPDS API</button>
       <button id="switch">Switch to ACEAS</button>
     </div>
-    <pre
-      id="out"
-      style="background: #111; color: #0f0; padding: 1rem; min-height: 10rem"
-    ></pre>
+    
+    <pre id="out"></pre>
+
   </body>
 </html>

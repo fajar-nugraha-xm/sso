@@ -1,4 +1,4 @@
-import '../styles/common.css';
+import '../styles/common.scss';
 import { callApi, log, showLoading, hideLoading } from "../shared";
 import Keycloak from 'keycloak-js';
 

@@ -1,4 +1,4 @@
-import '../styles/common.css';
+import '../styles/common.scss';
 import { callApi, log, showLoading, hideLoading } from "../shared";
 
 async function authCheck() {
@@ -40,7 +40,7 @@ window.onload = async () => {
             return;
         }
 
-        log("out", `State: authenticated, access_token: ${window.localStorage.getItem("access_token")}`);
+        log("out", `Authenticated.`);
         var interval = setInterval(async () => {
             const isAuth = await authCheck();
             if (!isAuth) {
