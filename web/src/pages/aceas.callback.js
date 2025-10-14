@@ -1,8 +1,7 @@
-import { log } from "../shared/index.js";
 import { oidc } from "./oidc.js";
 
-log("out", "Processing callback...");
+console.log("Processing callback...");
 oidc.signinCallback().then(() => {
-    log("out", "Callback successful, redirecting...");
+    console.log("Callback successful, redirecting...");
     window.location.replace("/aceas/");
 });

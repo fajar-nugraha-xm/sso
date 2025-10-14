@@ -1,8 +1,7 @@
-import { log } from "../shared/index.js";
 import { oidc } from "./oidc.js";
 
-log("out", "Processing Silent callback...");
+console.log("Processing Silent callback...");
 oidc.signinSilentCallback().then(() => {
-    log("out", "Silent callback successful, redirecting...");
+    console.log("Silent callback successful, redirecting...");
     window.location.replace("/aceas/");
 });

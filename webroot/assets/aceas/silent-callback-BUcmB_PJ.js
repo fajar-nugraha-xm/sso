@@ -1,1 +1,0 @@
-import"../modulepreload-polyfill-B5Qt9EMX.js";import{l as i}from"../sched-DruKi8Dd.js";import{o as l}from"../oidc-DLRF-_yD.js";i("out","Processing Silent callback...");l.signinSilentCallback().then(()=>{i("out","Silent callback successful, redirecting..."),window.location.replace("/aceas/")});
