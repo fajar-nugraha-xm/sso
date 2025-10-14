@@ -60,12 +60,22 @@ async function bootstrapAuth() {
 
         // token lifecycle (mirip kc.updateToken)
         oidc.events.addAccessTokenExpiring(async () => {
-            try { await oidc.signinSilent(); log("out", "token expiring → silent renew"); } catch { }
+            try {
+                await oidc.signinSilent(); log("out", "token expiring → silent renew");
+                log("out", "silent renew success");
+            } catch (error) {
+                log("out", "silent renew error: " + error);
+            }
         });
         oidc.events.addAccessTokenExpired(async () => {
             // coba renew; jika gagal, status jadi logged out
-            try { await oidc.signinSilent(); }
-            catch { state.isAuthenticated.value = false; }
+            try {
+                await oidc.signinSilent(); 
+                log("out", "token expired → silent renew");
+            } catch (error) {
+                log("out", "silent renew error: " + error);
+                state.isAuthenticated.value = false;
+            }
         });
         oidc.events.addUserSignedOut(async () => {
             // sesi di server berakhir
@@ -105,7 +115,8 @@ effect(() => {
         if (!userInfoBtn.onclick) {
             userInfoBtn.onclick = async () => {
                 const u = await oidc.getUser();
-                if (!u) return log("out", "Not logged in!");
+                if (!u) 
+                    return log("out", "Not logged in!");
                 const res = await fetch(
                     "http://eservice.localhost/auth/realms/agency-realm/protocol/openid-connect/userinfo",
                     { headers: { Authorization: `Bearer ${u.access_token}` } }
@@ -119,7 +130,8 @@ effect(() => {
         if (!callApiBtn.onclick) {
             callApiBtn.onclick = async () => {
                 const u = await oidc.getUser();
-                if (!u) return log("out", "Login first");
+                if (!u) 
+                    return log("out", "Login first");
                 const r = await callApi("/aceas/api/hello", u.access_token);
                 log("out", `ACEAS API [${r.status}]:\n${r.body}`);
             };
