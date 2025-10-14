@@ -1,0 +1,1 @@
+import"../modulepreload-polyfill-B5Qt9EMX.js";import{l as o}from"../sched-DruKi8Dd.js";import{o as a}from"../oidc-DLRF-_yD.js";o("out","Processing callback...");a.signinCallback().then(()=>{o("out","Callback successful, redirecting..."),window.location.replace("/aceas/")});
