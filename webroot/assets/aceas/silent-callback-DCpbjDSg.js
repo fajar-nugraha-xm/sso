@@ -1,1 +1,0 @@
-import"../modulepreload-polyfill-B5Qt9EMX.js";import{o as l}from"../oidc-CJ0UKR1p.js";console.log("Processing Silent callback...");l.signinSilentCallback().then(()=>{console.log("Silent callback successful, redirecting..."),window.location.replace("/aceas/")});

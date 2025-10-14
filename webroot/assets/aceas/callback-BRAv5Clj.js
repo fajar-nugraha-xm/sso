@@ -1,1 +1,0 @@
-import"../modulepreload-polyfill-B5Qt9EMX.js";import{o}from"../oidc-CJ0UKR1p.js";console.log("Processing callback...");o.signinCallback().then(()=>{console.log("Callback successful, redirecting..."),window.location.replace("/aceas/")});
