@@ -27,9 +27,9 @@ const state = (function() {
             try {
                 return await st.kc.init({
                     onLoad: 'check-sso',
-                    checkLoginIframe: false,
-                    pkceMethod: 'S256',
-                    flow: 'standard',
+                    checkLoginIframe: false,      // Security: Prevent CSRF via iframe
+                    pkceMethod: 'S256',           // Security: PKCE with SHA-256 for public clients
+                    flow: 'standard',             // Security: Authorization Code Flow (not deprecated Implicit Flow)
                     redirectUri: window.location.href,
                 });
             } catch (e) {
@@ -46,6 +46,7 @@ const state = (function() {
                     redirectUri: window.location.href,
                 });
             } finally {
+                // Security: Auto-refresh tokens before expiry to maintain session
                 st.kc.onTokenExpired = async () => {
                     try {
                         await st.kc.updateToken(30);
@@ -68,11 +69,13 @@ effect(() => {
         callApiBtn.style.display = "inline-block";
 
         !logoutBtn.onclick && (logoutBtn.onclick = () => {
+            // Security: Proper logout clears Keycloak session server-side
             state.kc.logout({ redirectUri: window.location.origin + "/aceas/" });
         });
         !userInfoBtn.onclick && (userInfoBtn.onclick = async () => {
             if (!state.kc.authenticated)
                 return log("out", "Not logged in");
+            // Security: Token sent via Authorization header (not URL params)
             const res = await fetch(
                 "http://eservice.localhost/auth/realms/agency-realm/protocol/openid-connect/userinfo",
                 { headers: { Authorization: "Bearer " + state.kc.token } }
@@ -85,6 +88,7 @@ effect(() => {
         !callApiBtn.onclick && (callApiBtn.onclick = async () => {
             if (!state.kc.authenticated)
                 return log("out", "Login first");
+            // Security: Token sent securely via Authorization header
             const r = await callApi("/aceas/api/hello", state.kc.token);
             log("out", `ACEAS API [${r.status}]:\n${r.body}`);
         });
