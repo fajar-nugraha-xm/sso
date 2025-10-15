@@ -1,6 +1,43 @@
 import './common.js';
 import { callApi, log, showLoading, hideLoading } from "../shared";
 
+function validateTransferToken(hash) {
+    try {
+        // Extract token from hash (#switcher=token)
+        const match = hash.match(/switcher=([^&]+)/);
+        if (!match) return false;
+        
+        const tokenFromUrl = match[1];
+        const storedToken = sessionStorage.getItem('app_transfer_token');
+        const timestamp = parseInt(sessionStorage.getItem('app_transfer_timestamp') || '0');
+        const source = sessionStorage.getItem('app_transfer_source');
+        
+        // Token must exist and match
+        if (!storedToken || storedToken !== tokenFromUrl) {
+            log("out", "Transfer token mismatch or missing");
+            return false;
+        }
+        
+        // Token must be from the correct source
+        if (source !== 'aceas') {
+            log("out", "Invalid transfer source");
+            return false;
+        }
+        
+        // Token must be recent (within 30 seconds)
+        const now = Date.now();
+        if (now - timestamp > 30000) {
+            log("out", "Transfer token expired");
+            return false;
+        }
+        
+        return true;
+    } catch (e) {
+        console.error("Error validating transfer token:", e);
+        return false;
+    }
+}
+
 async function authCheck() {
     const r = await fetch("/ids/auth/refresh", {
         method: "POST",
@@ -30,7 +67,13 @@ window.onload = async () => {
         if (!isAuth) {
             log("out", `State: not authenticated, please login`);
             if (window.location.hash.includes("switcher")) {
-                console.log("Switching");
+                // Validate transfer token
+                const isValidTransfer = validateTransferToken(window.location.hash);
+                if (isValidTransfer) {
+                    log("out", "Valid transfer token detected - redirecting to login");
+                } else {
+                    log("out", "Invalid or missing transfer token - login required");
+                }
                 // keep overlay visible while redirecting
                 location.href = '/ids/auth/login';
             } else {
@@ -41,6 +84,11 @@ window.onload = async () => {
         }
 
         log("out", `Authenticated.`);
+        // Clear transfer token after successful authentication
+        sessionStorage.removeItem('app_transfer_token');
+        sessionStorage.removeItem('app_transfer_source');
+        sessionStorage.removeItem('app_transfer_timestamp');
+        
         var interval = setInterval(async () => {
             const isAuth = await authCheck();
             if (!isAuth) {
@@ -89,6 +137,10 @@ document.getElementById("callapi").onclick = async () => {
     log("out", `CPDS API [${r.status}]:\n${r.body}`);
 };
 document.getElementById("switch").onclick = () => {
-    const go = encodeURIComponent("/aceas/");
-    window.location.href = `/aceas/#switcher`;
+    // Generate a one-time transfer token for secure app switching
+    const transferToken = crypto.randomUUID() + '-' + Date.now();
+    sessionStorage.setItem('app_transfer_token', transferToken);
+    sessionStorage.setItem('app_transfer_source', 'cpds');
+    sessionStorage.setItem('app_transfer_timestamp', Date.now().toString());
+    window.location.href = `/aceas/#switcher=${transferToken}`;
 };

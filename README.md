@@ -167,6 +167,7 @@ See the compose file for exact settings and ports.
 - The SPAs assume the site is served from `http://eservice.localhost`. Ensure your hosts file maps this name to `127.0.0.1`.
 - The `ids` service demonstrates exchanging Keycloak tokens for application-specific tokens and includes endpoints for login, refresh and logout.
 - **Security**: For detailed information about frontend-only authentication security, see [SECURITY.md](./SECURITY.md).
+- **App Switcher**: The app switcher buttons use frontend-only validation to ensure secure navigation between apps. See [APP-SWITCHER.md](./APP-SWITCHER.md) for details.
 
 ## Security
 
