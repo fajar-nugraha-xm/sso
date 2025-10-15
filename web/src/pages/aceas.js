@@ -15,6 +15,43 @@ const state = {
     userInfo: signal(null),
 };
 
+async function validateTransferToken(hash) {
+    try {
+        // Extract token from hash (#switcher=token)
+        const match = hash.match(/switcher=([^&]+)/);
+        if (!match) return false;
+        
+        const tokenFromUrl = match[1];
+        const storedToken = sessionStorage.getItem('app_transfer_token');
+        const timestamp = parseInt(sessionStorage.getItem('app_transfer_timestamp') || '0');
+        const source = sessionStorage.getItem('app_transfer_source');
+        
+        // Token must exist and match
+        if (!storedToken || storedToken !== tokenFromUrl) {
+            log("out", "Transfer token mismatch or missing");
+            return false;
+        }
+        
+        // Token must be from the correct source
+        if (source !== 'cpds') {
+            log("out", "Invalid transfer source");
+            return false;
+        }
+        
+        // Token must be recent (within 30 seconds)
+        const now = Date.now();
+        if (now - timestamp > 30000) {
+            log("out", "Transfer token expired");
+            return false;
+        }
+        
+        return true;
+    } catch (e) {
+        console.error("Error validating transfer token:", e);
+        return false;
+    }
+}
+
 async function checkSSO() {
     // 1) local cache
     const cached = await oidc.getUser();
@@ -39,8 +76,12 @@ async function bootstrapAuth() {
         // init handlers
         loginBtn.onclick = () => oidc.signinRedirect(); // sama dg kc.login()
         switchBtn.onclick = () => {
-            const go = encodeURIComponent("/cpds/");
-            window.location.href = `/cpds/#switcher`;     // sama seperti contohmu
+            // Generate a one-time transfer token for secure app switching
+            const transferToken = crypto.randomUUID() + '-' + Date.now();
+            sessionStorage.setItem('app_transfer_token', transferToken);
+            sessionStorage.setItem('app_transfer_source', 'aceas');
+            sessionStorage.setItem('app_transfer_timestamp', Date.now().toString());
+            window.location.href = `/cpds/#switcher=${transferToken}`;
         };
 
         // “check-sso” dulu
@@ -49,13 +90,22 @@ async function bootstrapAuth() {
 
         if (!ok) {
             log("out", "Not authenticated.");
-            // jika datang dengan hash #switcher → paksa login (login-required)
+            // jika datang dengan hash #switcher → validate transfer token
             if (window.location.hash.includes("switcher")) {
+                const isValidTransfer = validateTransferToken(window.location.hash);
+                if (!isValidTransfer) {
+                    log("out", "Invalid or missing transfer token - login required");
+                }
+                // Always require login if not authenticated, regardless of token
                 await oidc.signinRedirect();
                 return;
             }
         } else {
             log("out", "Authenticated.");
+            // Clear transfer token after successful authentication
+            sessionStorage.removeItem('app_transfer_token');
+            sessionStorage.removeItem('app_transfer_source');
+            sessionStorage.removeItem('app_transfer_timestamp');
         }
 
         // token lifecycle (mirip kc.updateToken)
