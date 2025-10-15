@@ -166,3 +166,17 @@ See the compose file for exact settings and ports.
 
 - The SPAs assume the site is served from `http://eservice.localhost`. Ensure your hosts file maps this name to `127.0.0.1`.
 - The `ids` service demonstrates exchanging Keycloak tokens for application-specific tokens and includes endpoints for login, refresh and logout.
+- **Security**: For detailed information about frontend-only authentication security, see [SECURITY.md](./SECURITY.md).
+
+## Security
+
+This repository demonstrates two secure authentication approaches:
+
+1. **Frontend-Only (ACEAS)** - Using Keycloak.js with PKCE (Proof Key for Code Exchange)
+2. **Backend-Brokered (CPDS)** - Using a backend IDS service
+
+Both approaches are secure when implemented correctly. See [SECURITY.md](./SECURITY.md) for:
+- Detailed security analysis of frontend-only authentication
+- Best practices and security checklist
+- Comparison between approaches
+- Common security pitfalls to avoid

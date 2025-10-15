@@ -27,6 +27,11 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 /**
  * Middleware to protect API routes and ensure the user is authenticated.
  * 
+ * Security: Backend MUST validate tokens even in frontend-only authentication
+ * - Verifies JWT signature using Keycloak's JWKS (public keys)
+ * - Validates issuer, audience, and algorithm
+ * - Never trust tokens without cryptographic verification
+ * 
  * @param {import('express').Request} req 
  * @param {import('express').Response} res 
  * @param {import('express').NextFunction} next 
@@ -34,10 +39,13 @@ app.get('/health', (req, res) => res.json({ ok: true }));
  */
 async function auth(req, res, next) {
     try {
+        // Security: Accept token from Authorization header (preferred) or cookie
         const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '') || req.cookies.app_token;
         if (!token)
             return res.status(401).json({ error: 'No token' });
 
+        // Security: Verify token signature, issuer, audience using JWKS
+        // This prevents token tampering and validates token authenticity
         const { payload } = await jwtVerify(token, JWKS, { issuer: ISSUER, audience: AUDIENCE, algorithms: ['RS256'] });
         req.jwt = payload;
         next();

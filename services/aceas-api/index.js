@@ -20,11 +20,28 @@ const JWKS = createRemoteJWKSet(new URL(JWKS_URL), {
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
+/**
+ * Middleware to protect API routes and ensure the user is authenticated.
+ * 
+ * Security: Backend MUST validate tokens even in frontend-only authentication
+ * - Verifies JWT signature using Keycloak's JWKS (public keys)
+ * - Validates issuer, audience, and algorithm
+ * - Never trust tokens without cryptographic verification
+ * 
+ * @param {import('express').Request} req 
+ * @param {import('express').Response} res 
+ * @param {import('express').NextFunction} next 
+ * @returns {Promise<void>}
+ */
 async function auth(req, res, next) {
   try {
+    // Security: Extract token from Authorization header
     const h = req.headers.authorization || '';
     const [, token] = h.split(' ');
     if (!token) return res.status(401).json({ error: 'missing bearer token' });
+    
+    // Security: Verify token signature, issuer, audience using Keycloak's JWKS
+    // This prevents token tampering and validates token authenticity
     const { payload } = await jwtVerify(token, JWKS, { issuer: ISSUER, audience: AUDIENCE, algorithms: ['RS256'] });
     req.jwt = payload;
     next();
